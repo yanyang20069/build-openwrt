@@ -65,7 +65,7 @@ jobs:
           git clone https://github.com/yanyang20069/r2s-lede-config.git
           mv r2s-lede-config/* .
           rm -rf r2s-lede-config/
-          mv config-openclash.txt .config
+          mv config.txt .config
           rm -f *.txt
 
           sed -i 's/^[ \t]*//g' ./.config
