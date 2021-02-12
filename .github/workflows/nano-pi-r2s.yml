@@ -79,8 +79,8 @@ jobs:
 
       - name: Compile firmware
         run: |
-          echo -e "1 thread build."
-          make -j1 V=s
+          echo -e "$(nproc) thread build."
+          make -j$(nproc) V=s
 
       - name: Assemble artifact
         run: |
