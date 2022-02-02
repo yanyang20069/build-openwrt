@@ -13,10 +13,6 @@ on:
   push:
     branches: 
       - main
-  schedule:
-    - cron: "0 0 13 * *"
-  # release:
-  #   types: [published]
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
