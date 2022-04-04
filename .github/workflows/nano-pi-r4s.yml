@@ -1,0 +1,73 @@
+#
+# This is free software, lisence use MIT.
+#
+
+name: NanoPi-R2S-Config
+
+on:
+  push:
+    branches: 
+      - main
+
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede
+  REPO_BRANCH: master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          ref: main
+
+      - name: Download Lede
+        run: |
+          git clone $REPO_URL -b $REPO_BRANCH lede
+          mv lede/* .
+          rm -rf lede/
+
+      - name: Update feeds
+        run: |
+          echo "src-git helloworld https://github.com/fw876/helloworld" >> feeds.conf.default
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Costom configure file
+        run: |
+          rm -f ./.config*
+
+          git clone https://github.com/yanyang20069/r2s-lede-config.git
+          mv r2s-lede-config/* .
+          rm -rf r2s-lede-config/
+          mv r4s-config.txt .config
+          rm -f *.txt
+
+          sed -i 's/^[ \t]*//g' ./.config
+          make defconfig
+
+      - name: Make download
+        run: |
+          make download -j$(nproc)
+          find dl -size -1024c -exec ls -l {} \;
+          find dl -size -1024c -exec rm -f {} \;
+
+      - name: Compile firmware
+        run: |
+          echo -e "$(nproc) thread build."
+          make -j$(nproc) V=s
+
+      - name: Assemble artifact
+        run: |
+          rm -rf ./artifact/
+          mkdir -p ./artifact/
+          find ./bin/targets/ -name "*img*" | xargs -i mv -f {} ./artifact/
+          find ./bin/targets/ -name "*tar*" | xargs -i mv -f {} ./artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: OpenWrt firmware
+          path: ./artifact/
